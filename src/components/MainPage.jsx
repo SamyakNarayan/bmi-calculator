@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "./NavBar";
+import { saveBmiHistory } from "../utils/db";
 
 const MainPage = ({ setBmiResult, user, isLoggedIn, setIsLoggedIn, setUser }) => {
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const h = parseFloat(height) / 100; // cm to meters
     const w = parseFloat(weight);
@@ -17,15 +18,11 @@ const MainPage = ({ setBmiResult, user, isLoggedIn, setIsLoggedIn, setUser }) =>
 
       // Only store for non-guest users
       if (user && user !== "Guest") {
-        const history = JSON.parse(localStorage.getItem("bmi_history") || "[]");
-        history.push({
-          username: user,
-          height,
-          weight,
-          bmi,
-          timestamp: new Date().toISOString()
+        await saveBmiHistory({
+          height: parseFloat(height),
+          weight: parseFloat(weight),
+          bmi: parseFloat(bmi)
         });
-        localStorage.setItem("bmi_history", JSON.stringify(history));
       }
 
       navigate("/result");
@@ -33,6 +30,7 @@ const MainPage = ({ setBmiResult, user, isLoggedIn, setIsLoggedIn, setUser }) =>
       alert("Enter valid height and weight.");
     }
   };
+
 
   return (
     <>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { removeToken } from "../utils/db";
 
 const NavBar = ({ isLoggedIn, setIsLoggedIn, setUser }) => {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ const NavBar = ({ isLoggedIn, setIsLoggedIn, setUser }) => {
     if (isLoggedIn) {
       setIsLoggedIn(false);
       setUser("");
+      removeToken();
     }
     navigate('/');
   };

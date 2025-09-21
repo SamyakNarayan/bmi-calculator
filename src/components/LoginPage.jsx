@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./NavBar";
+import { loginUser, registerUser } from "../utils/db";
 
 const LoginPage = ({ setIsLoggedIn, setUser }) => {
   const [activeTab, setActiveTab] = useState("login");
@@ -11,28 +12,19 @@ const LoginPage = ({ setIsLoggedIn, setUser }) => {
   const [signupConfirm, setSignupConfirm] = useState("");
   const navigate = useNavigate();
 
-  // Get users from localStorage
-  const getUsers = () => JSON.parse(localStorage.getItem("bmi_users") || "[]");
-
-  // Save users to localStorage
-  const saveUsers = (users) => localStorage.setItem("bmi_users", JSON.stringify(users));
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const users = getUsers();
-    const found = users.find(
-      (u) => u.username === loginUsername && u.password === loginPassword
-    );
-    if (found) {
+    const result = await loginUser(loginUsername, loginPassword);
+    if (result.success) {
       setIsLoggedIn(true);
-      setUser(loginUsername);
+      setUser(result.username);
       navigate("/main");
     } else {
-      alert("Invalid username or password.");
+      alert(result.error || "Invalid username or password.");
     }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!signupUsername || !signupPassword || !signupConfirm) {
       alert("Please fill in all sign up fields.");
@@ -42,14 +34,14 @@ const LoginPage = ({ setIsLoggedIn, setUser }) => {
       alert("Passwords do not match.");
       return;
     }
-    const users = getUsers();
-    if (users.some((u) => u.username === signupUsername)) {
-      alert("User already exists. Please Login");
+    
+    const result = await registerUser(signupUsername, signupPassword);
+    if (result.success) {
+      alert(result.message || "Sign up successful! You can now log in.");
+    } else {
+      alert(result.error || "Error creating account. Please try again.");
       return;
     }
-    users.push({ username: signupUsername, password: signupPassword });
-    saveUsers(users);
-    alert("Sign up successful! You can now log in.");
     setActiveTab("login");
     setLoginUsername(signupUsername);
     setLoginPassword("");
